@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+$: << File.expand_path('../../lib', __FILE__)
+require 'kumogata2'
+require 'kumogata2/cli/option_parser'
+
+Version = Kumogata2::VERSION
+
+def main(argv)
+  debug = true
+
+  begin
+    Kumogata2::Plugin.load_plugins
+
+    parsed = Kumogata2::CLI::OptionParser.parse!(argv)
+    command, arguments, options, output_result = parsed
+    debug = options.debug?
+
+    out = Kumogata2::Client.new(options).send(command, *arguments)
+
+    if [:create, :update, :delete].include?(command) and options.detach?
+      puts '[detached]'
+    elsif output_result and out
+      puts out
+    end
+  rescue => e
+    $stderr.puts("[ERROR] #{e.message}".red)
+
+    if debug
+      raise e
+    else
+      backtrace = Kumogata2::Utils.filter_backtrace(e.backtrace)
+
+      unless backtrace.empty?
+        $stderr.puts "  from #{backtrace.first}".red
+      end
+    end
+
+    exit 1
+  end
+end
+
+main(ARGV)
