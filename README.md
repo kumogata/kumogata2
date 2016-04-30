@@ -72,6 +72,24 @@ Options:
         --[no-]debug
 ```
 
+### Create resources
+
+    $ kumogata create template.rb
+
+If you want to save the stack, please specify the stack name:
+
+    $ kumogata create template.rb any_stack_name
+
+If you want to pass parameters, please use `-p` option:
+
+    $ kumogata create template.rb -p "InstanceType=m1.large,KeyName=any_other_key"
+
+
+**Notice**
+
+**The stack will be delete if you do not specify the stack name explicitly.**
+(And only the resources will remain)
+
 ## Plugin
 
 Kumogata2 can be extended with plug-ins, such as the following:
