@@ -35,7 +35,7 @@ module Kumogata2::Plugin
 
       plgns.each do |plgns_spec|
         name = plgns_spec.name
-        path = File.join(name.split('-').slice(0, 3))
+        path = File.join(name.split('-', 3))
 
         begin
           require path
