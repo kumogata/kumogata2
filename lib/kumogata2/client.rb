@@ -354,7 +354,7 @@ class Kumogata2::Client
       return @plugin_by_ext.fetch(ext)
     end
 
-    plugin_class = Kumogata2::Plugin.find(ext)
+    plugin_class = Kumogata2::Plugin.find_by_ext(ext)
     plugin = plugin_class ? plugin_class.new(@options) : nil
     @plugin_by_ext[ext] = plugin
   end

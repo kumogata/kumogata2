@@ -1,6 +1,3 @@
-require 'optparse'
-require 'hashie'
-
 module Kumogata2::CLI
   class OptionParser
     DEFAULT_OPTIONS = {
@@ -93,7 +90,8 @@ module Kumogata2::CLI
         options[:aws][:credentials][:path] = v
       end
 
-      opt.on(''  , '--output-format FORMAT', Kumogata2::Plugin.plugin_exts) do |v|
+      plugin_exts = Kumogata2::Plugin.plugins.flat_map(&:ext).uniq
+      opt.on(''  , '--output-format FORMAT', plugin_exts) do |v|
         options[:output_format] = v
       end
 
@@ -183,10 +181,6 @@ module Kumogata2::CLI
       options.output_result = output
 
       [command, arguments, options, output]
-    rescue => e
-      $stderr.puts("[ERROR] #{e.message}")
-      raise e if options[:debug]
-      exit_parse!(1)
     end
 
     private
@@ -220,8 +214,11 @@ module Kumogata2::CLI
       }.join("\n"))
 
       opt.separator ''
-      opt.separator 'Support Format: '
-      opt.separator '  ' + Kumogata2::Plugin.plugin_exts.join(', ')
+      opt.separator 'Plugins: '
+
+      Kumogata2::Plugin.plugins.each do |plugin|
+        opt.separator "  #{plugin.name}: #{plugin.ext.join(', ')}"
+      end
 
       opt.separator ''
       opt.separator 'Options:'

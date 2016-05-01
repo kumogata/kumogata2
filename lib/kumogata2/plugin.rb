@@ -2,32 +2,33 @@ module Kumogata2::Plugin
   class << self
     def register(name, exts, klass)
       name = name.to_s
-      @plugins ||= {}
+      @plugins ||= Hashie::Mash.new
 
       if @plugins.has_key?(name)
-        raise "Plugin has already been registered: #{name}"
+        Kumogata2::Logger::Helper.log(:warn, "Plugin has already been registered: #{name}", color: :yellow)
       end
 
       @plugins[name] = {
-        class: klass,
+        name: name,
+        type: klass,
         ext: exts.map(&:to_s),
       }
     end
 
-    def find(ext)
-      plgns = @plugins.to_a.reverse
-
-      plugin_name, plugin_attrs = plgns.find do |name, attrs|
-        attrs[:ext].include?(ext)
+    def find_by_ext(ext)
+      plgn = self.plugins.reverse.find do |i|
+        i.ext.include?(ext)
       end
 
-      plugin_attrs ? plugin_attrs[:class] : nil
+      plgn ? plgn.type : nil
     end
 
-    def plugin_exts
-      @plugins.flat_map {|name, attrs|
-        attrs[:ext]
-      }.uniq
+    def plugin_by_name
+      @plugins
+    end
+
+    def plugins
+      @plugins.map {|_, v| v }
     end
 
     def load_plugins

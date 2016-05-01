@@ -22,8 +22,10 @@ def main(argv)
     elsif output_result and out
       puts out
     end
-  rescue => e
-    $stderr.puts("[ERROR] #{e.message}".red)
+  rescue Exception => e
+    if not e.kind_of?(Interrupt) and not e.kind_of?(SystemExit)
+      $stderr.puts("[ERROR] #{e.message}".red)
+    end
 
     if debug
       raise e
