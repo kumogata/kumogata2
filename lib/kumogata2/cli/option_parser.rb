@@ -150,8 +150,9 @@ module Kumogata2::CLI
 
       orig_command = command
       command = command.gsub('-', '_').to_sym
+      command = find_command(command)
 
-      unless COMMANDS.has_key?(command)
+      unless command
         raise "Unknown command: #{orig_command}"
       end
 
@@ -192,6 +193,16 @@ module Kumogata2::CLI
     end
 
     private
+
+    def find_command(command)
+      selected = COMMANDS.keys.select {|i| i =~ /\A#{command}/ }
+
+      if selected.length == 1
+        selected.first
+      else
+        nil
+      end
+    end
 
     def exit_parse!(exit_code)
       exit(exit_code)
