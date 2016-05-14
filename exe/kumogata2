@@ -6,7 +6,7 @@ require 'kumogata2/cli/option_parser'
 Version = Kumogata2::VERSION
 
 def main(argv)
-  debug = true
+  debug = ARGV.include?('--debug')
 
   begin
     Kumogata2::Plugin.load_plugins
