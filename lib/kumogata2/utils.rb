@@ -32,5 +32,22 @@ class Kumogata2::Utils
       user_host = [user, host].select {|i| not i.empty? }.join('-')
       user_host.empty? ? nil : user_host
     end
+
+    def stringify(obj)
+      case obj
+      when Array
+        obj.map {|v| stringify(v) }
+      when Hash
+        hash = {}
+
+        obj.each do |k, v|
+          hash[stringify(k)] = stringify(v)
+        end
+
+        hash
+      else
+        obj.to_s
+      end
+    end
   end # of class methods
 end

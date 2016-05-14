@@ -87,6 +87,7 @@ class Kumogata2::Client
         template = open_template(path_or_url)
       end
 
+      template = Kumogata2::Utils.stringify(template)
       JSON.pretty_generate(template)
     end
 
