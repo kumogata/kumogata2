@@ -9,6 +9,7 @@ class Kumogata2::Client
   end
 
   def create(path_or_url, stack_name = nil)
+    stack_name = normalize_stack_name(stack_name)
     validate_stack_name(stack_name) if stack_name
     template = open_template(path_or_url)
     update_deletion_policy(template, delete_stack: !stack_name)
@@ -21,6 +22,7 @@ class Kumogata2::Client
   end
 
   def update(path_or_url, stack_name)
+    stack_name = normalize_stack_name(stack_name)
     validate_stack_name(stack_name)
     template = open_template(path_or_url)
     update_deletion_policy(template, update_metadate: true)
@@ -33,6 +35,7 @@ class Kumogata2::Client
   end
 
   def delete(stack_name)
+    stack_name = normalize_stack_name(stack_name)
     validate_stack_name(stack_name)
     @resource.stack(stack_name).stack_status
 
@@ -47,12 +50,14 @@ class Kumogata2::Client
   end
 
   def list(stack_name = nil)
+    stack_name = normalize_stack_name(stack_name)
     validate_stack_name(stack_name) if stack_name
     stacks = describe_stacks(stack_name)
     JSON.pretty_generate(stacks).colorize_as(:json)
   end
 
   def export(stack_name)
+    stack_name = normalize_stack_name(stack_name)
     validate_stack_name(stack_name)
     template = export_template(stack_name)
     convert0(template)
@@ -87,6 +92,7 @@ class Kumogata2::Client
   end
 
   def dry_run(path_or_url, stack_name = nil)
+    stack_name = normalize_stack_name(stack_name)
     validate_stack_name(stack_name) if stack_name
     template = open_template(path_or_url)
     update_deletion_policy(template, delete_stack: !stack_name)
@@ -96,18 +102,21 @@ class Kumogata2::Client
   end
 
   def show_events(stack_name)
+    stack_name = normalize_stack_name(stack_name)
     validate_stack_name(stack_name)
     events = describe_events(stack_name)
     JSON.pretty_generate(events).colorize_as(:json)
   end
 
   def show_outputs(stack_name)
+    stack_name = normalize_stack_name(stack_name)
     validate_stack_name(stack_name)
     outputs = describe_outputs(stack_name)
     JSON.pretty_generate(outputs).colorize_as(:json)
   end
 
   def show_resources(stack_name)
+    stack_name = normalize_stack_name(stack_name)
     validate_stack_name(stack_name)
     resources = describe_resources(stack_name)
     JSON.pretty_generate(resources).colorize_as(:json)
@@ -583,5 +592,13 @@ EOS
     stack_name << SecureRandom.uuid
     stack_name = stack_name.join('-')
     stack_name.gsub(/[^-a-zA-Z0-9]+/, '-').gsub(/-+/, '-')
+  end
+
+  def normalize_stack_name(stack_name)
+    if %r|\Astack://| =~ stack_name
+      stack_name.sub(%r|\Astack://|, '')
+    else
+      stack_name
+    end
   end
 end
