@@ -7,6 +7,10 @@ module Kumogata2::CLI
     }
 
     COMMANDS = {
+      describe: {
+        description: 'Describe a specified stack',
+        arguments: [:stack_name],
+      },
       create: {
         description: 'Create resources as specified in the template',
         arguments: [:path_or_url, :stack_name?],

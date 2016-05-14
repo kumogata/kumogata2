@@ -26,6 +26,7 @@ Or install it yourself as:
 Usage: kumogata2 <command> [args] [options]
 
 Commands:
+  describe         STACK_NAME                 Describe a specified stack
   create           PATH_OR_URL [STACK_NAME]   Create resources as specified in the template
   update           PATH_OR_URL STACK_NAME     Update a stack as specified in the template
   delete           STACK_NAME                 Delete a specified stack

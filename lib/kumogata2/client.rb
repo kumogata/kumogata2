@@ -8,6 +8,13 @@ class Kumogata2::Client
     @plugin_by_ext = {}
   end
 
+  def describe(stack_name)
+    stack_name = normalize_stack_name(stack_name)
+    validate_stack_name(stack_name)
+    stack = describe_stack(stack_name)
+    JSON.pretty_generate(stack).colorize_as(:json)
+  end
+
   def create(path_or_url, stack_name = nil)
     stack_name = normalize_stack_name(stack_name)
     validate_stack_name(stack_name) if stack_name
@@ -139,6 +146,11 @@ class Kumogata2::Client
   end
 
   private
+
+  def describe_stack(stack_name)
+    resp = @client.describe_stacks(stack_name: stack_name)
+    resp.stacks.first.to_h
+  end
 
   def create_stack(template, stack_name)
     stack_will_be_deleted = !stack_name
