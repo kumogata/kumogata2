@@ -122,6 +122,22 @@ class Kumogata2::Client
     JSON.pretty_generate(resources).colorize_as(:json)
   end
 
+  def template_summary(path_or_url)
+    params = {}
+
+    if path_or_url =~ %r|\Astack://(.*)|
+      stack_name = $1 || ''
+      validate_stack_name(stack_name)
+      params[:stack_name] = stack_name
+    else
+      template = open_template(path_or_url)
+      params[:template_body] = JSON.pretty_generate(template)
+    end
+
+    summary = describe_template_summary(params)
+    JSON.pretty_generate(summary).colorize_as(:json)
+  end
+
   private
 
   def create_stack(template, stack_name)
@@ -332,6 +348,11 @@ class Kumogata2::Client
     stack = @resource.stack(stack_name)
     stack.stack_status
     resource_summaries_for(stack)
+  end
+
+  def describe_template_summary(params)
+    resp = @client.get_template_summary(params)
+    resp.to_h
   end
 
   def convert0(template)

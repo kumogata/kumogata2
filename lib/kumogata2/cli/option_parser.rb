@@ -59,6 +59,10 @@ module Kumogata2::CLI
         description: 'Show resources for a specified stack',
         arguments: [:stack_name],
       },
+      template_summary: {
+        description: 'Show template information for a specified stack',
+        arguments: [:path_or_url],
+      },
     }
 
     class << self
