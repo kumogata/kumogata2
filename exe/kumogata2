@@ -23,7 +23,9 @@ def main(argv)
       puts out
     end
   rescue Exception => e
-    if not e.kind_of?(Interrupt) and not e.kind_of?(SystemExit)
+    raise e if e.kind_of?(SystemExit)
+
+    if not e.kind_of?(Interrupt)
       $stderr.puts("[ERROR] #{e.message}".red)
     end
 
