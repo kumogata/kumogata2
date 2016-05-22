@@ -115,3 +115,6 @@ end
 ```
 
 see [kumogata2-plugin-ruby](https://github.com/winebarrel/kumogata2-plugin-ruby).
+
+## Similar tools
+* [Codenize.tools](http://codenize.tools/)
