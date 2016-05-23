@@ -32,5 +32,5 @@ module Kumogata2::Ext
   end # StringExt
 end # Kumogata2::Ext
 
-String.include(Kumogata2::Ext::StringExt)
+String.send(:include, Kumogata2::Ext::StringExt)
 String.extend(Kumogata2::Ext::StringExt::ClassMethods)
