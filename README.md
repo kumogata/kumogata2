@@ -74,6 +74,14 @@ Options:
         --[no-]debug
 ```
 
+### Environment variables
+
+```sh
+export AWS_SECRET_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE
+export AWS_ACCESS_KEY_ID=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+export AWS_REGION=us-east-1
+```
+
 ### Create resources
 
     $ kumogata2 create template.rb
