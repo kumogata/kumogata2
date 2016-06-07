@@ -78,7 +78,9 @@ module Kumogata2::CLI
     def parse!(argv)
       command = nil
       arguments = nil
-      options = {aws: {}}
+      # https://github.com/aws/aws-sdk-ruby/blob/v2.3.11/aws-sdk-core/lib/aws-sdk-core/plugins/regional_endpoint.rb#L18
+      region_keys = %w(AWS_REGION AMAZON_REGION AWS_DEFAULT_REGION)
+      options = {aws: {region: ENV.values_at(*region_keys).compact.first}}
 
       opt = ::OptionParser.new
       opt.summary_width = 65535
@@ -142,6 +144,11 @@ module Kumogata2::CLI
       opt.on(''  , '--[no-]debug')              {|v| options[:debug]            = v }
 
       opt.parse!
+
+      # https://github.com/aws/aws-sdk-ruby/blob/v2.3.11/aws-sdk-core/lib/aws-sdk-core/plugins/regional_endpoint.rb#L29
+      unless options[:aws][:region]
+        raise "missing region; use '--region' option or export region name to ENV['AWS_REGION']"
+      end
 
       unless (command = argv.shift)
         puts opt.help
