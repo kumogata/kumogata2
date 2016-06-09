@@ -168,7 +168,7 @@ class Kumogata2::Client
       parameters: parameters_array,
     }
 
-    set_api_params(params,
+    params.merge!(set_api_params(params,
       :disable_rollback,
       :timeout_in_minutes,
       :notification_arns,
@@ -177,6 +177,7 @@ class Kumogata2::Client
       :on_failure,
       :stack_policy_body,
       :stack_policy_url)
+    )
 
     stack = @resource.create_stack(params)
 
@@ -212,7 +213,7 @@ class Kumogata2::Client
       parameters: parameters_array,
     }
 
-    set_api_params(params,
+    params.merge!(set_api_params(params,
       :use_previous_template,
       :stack_policy_during_update_body,
       :stack_policy_during_update_url,
@@ -221,6 +222,7 @@ class Kumogata2::Client
       :resource_types,
       :stack_policy_body,
       :stack_policy_url)
+    )
 
     event_log = create_event_log(stack)
     stack.update(params)
@@ -310,11 +312,12 @@ class Kumogata2::Client
       parameters: parameters_array,
     }
 
-    set_api_params(params,
+    params.merge!(set_api_params(params,
       :use_previous_template,
       :notification_arns,
       :capabilities,
       :resource_types)
+    )
 
     resp = @client.create_change_set(params)
     change_set_arn = resp.id
@@ -429,8 +432,10 @@ class Kumogata2::Client
   end
 
   def set_api_params(params, *keys)
-    keys.each do |k|
-      opts[k] = @options[k] if @options[k]
+    {}.tap do |h|
+      keys.each do |k|
+        h[k] = @options[k] if @options[k]
+      end
     end
   end
 
