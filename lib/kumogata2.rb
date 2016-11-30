@@ -19,5 +19,6 @@ require 'kumogata2/utils'
 
 require 'kumogata2/plugin'
 require 'kumogata2/plugin/json'
+require 'kumogata2/plugin/yaml'
 
 require 'kumogata2/client'
