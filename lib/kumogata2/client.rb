@@ -3,8 +3,8 @@ class Kumogata2::Client
 
   def initialize(options)
     @options = options.kind_of?(Hashie::Mash) ? options : Hashie::Mash.new(options)
-    @client = Aws::CloudFormation::Client.new
-    @resource = Aws::CloudFormation::Resource.new(client: @client)
+    @client = nil
+    @resource = nil
     @plugin_by_ext = {}
   end
 
@@ -44,7 +44,7 @@ class Kumogata2::Client
   def delete(stack_name)
     stack_name = normalize_stack_name(stack_name)
     validate_stack_name(stack_name)
-    @resource.stack(stack_name).stack_status
+    get_resource.stack(stack_name).stack_status
 
     if @options.force? or agree("Are you sure you want to delete `#{stack_name}`? ".yellow)
       delete_stack(stack_name)
@@ -148,8 +148,19 @@ class Kumogata2::Client
 
   private
 
+  def get_client
+    return @client unless @client.nil?
+    @client = Aws::CloudFormation::Client.new
+  end
+
+  def get_resource
+    return @resource unless @resource.nil?
+    get_client if @client.nil?
+    @resource = Aws::CloudFormation::Resource.new(client: @client)
+  end
+
   def describe_stack(stack_name)
-    resp = @client.describe_stacks(stack_name: stack_name)
+    resp = get_client.describe_stacks(stack_name: stack_name)
     resp.stacks.first.to_h
   end
 
@@ -179,7 +190,7 @@ class Kumogata2::Client
       :stack_policy_url)
     )
 
-    stack = @resource.create_stack(params)
+    stack = get_resource.create_stack(params)
 
     return if @options.detach?
 
@@ -202,7 +213,7 @@ class Kumogata2::Client
   end
 
   def update_stack(template, stack_name)
-    stack = @resource.stack(stack_name)
+    stack = get_resource.stack(stack_name)
     stack.stack_status
 
     log(:info, "Updating stack: #{stack_name}", color: :green)
@@ -230,7 +241,7 @@ class Kumogata2::Client
     return if @options.detach?
 
     # XXX: Reacquire the stack
-    stack = @resource.stack(stack_name)
+    stack = get_resource.stack(stack_name)
     completed = wait(stack, 'UPDATE_COMPLETE', event_log)
 
     unless completed
@@ -246,7 +257,7 @@ class Kumogata2::Client
   end
 
   def delete_stack(stack_name)
-    stack = @resource.stack(stack_name)
+    stack = get_resource.stack(stack_name)
     stack.stack_status
 
     log(:info, "Deleting stack: #{stack_name}", color: :red)
@@ -259,7 +270,7 @@ class Kumogata2::Client
 
     begin
       # XXX: Reacquire the stack
-      stack = @resource.stack(stack_name)
+      stack = get_resource.stack(stack_name)
       completed = wait(stack, 'DELETE_COMPLETE', event_log)
     rescue Aws::CloudFormation::Errors::ValidationError
       # Handle `Stack does not exist`
@@ -274,7 +285,7 @@ class Kumogata2::Client
   end
 
   def validate_template(template)
-    @client.validate_template(template_body: template.to_json)
+    get_client.validate_template(template_body: template.to_json)
     log(:info, 'Template validated successfully', color: :green)
   end
 
@@ -282,7 +293,7 @@ class Kumogata2::Client
     params = {}
     params[:stack_name] = stack_name if stack_name
 
-    @resource.stacks(params).map do |stack|
+    get_resource.stacks(params).map do |stack|
       {
         'StackName'    => stack.name,
         'CreationTime' => stack.creation_time,
@@ -293,7 +304,7 @@ class Kumogata2::Client
   end
 
   def export_template(stack_name)
-    stack = @resource.stack(stack_name)
+    stack = get_resource.stack(stack_name)
     stack.stack_status
     template = stack.client.get_template(stack_name: stack_name).template_body
     JSON.parse(template)
@@ -319,7 +330,7 @@ class Kumogata2::Client
       :resource_types)
     )
 
-    resp = @client.create_change_set(params)
+    resp = get_client.create_change_set(params)
     change_set_arn = resp.id
 
     completed, change_set = wait_change_set(change_set_arn, 'CREATE_COMPLETE')
@@ -332,7 +343,7 @@ class Kumogata2::Client
 
     log(:info, "Deleting ChangeSet: #{change_set_name}", color: :red)
 
-    @client.delete_change_set(change_set_name: change_set_arn)
+    get_client.delete_change_set(change_set_name: change_set_arn)
 
     begin
       completed, _ = wait_change_set(change_set_arn, 'DELETE_COMPLETE')
@@ -349,25 +360,25 @@ class Kumogata2::Client
   end
 
   def describe_events(stack_name)
-    stack = @resource.stack(stack_name)
+    stack = get_resource.stack(stack_name)
     stack.stack_status
     events_for(stack)
   end
 
   def describe_outputs(stack_name)
-    stack = @resource.stack(stack_name)
+    stack = get_resource.stack(stack_name)
     stack.stack_status
     outputs_for(stack)
   end
 
   def describe_resources(stack_name)
-    stack = @resource.stack(stack_name)
+    stack = get_resource.stack(stack_name)
     stack.stack_status
     resource_summaries_for(stack)
   end
 
   def describe_template_summary(params)
-    resp = @client.get_template_summary(params)
+    resp = get_client.get_template_summary(params)
     resp.to_h
   end
 
@@ -460,7 +471,7 @@ class Kumogata2::Client
     change_set = nil
 
     loop do
-      change_set = @client.describe_change_set(change_set_name: change_set_name)
+      change_set = get_client.describe_change_set(change_set_name: change_set_name)
 
       if change_set.status !~ /(_PENDING|_IN_PROGRESS)\z/
         break
