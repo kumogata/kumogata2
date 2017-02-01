@@ -1,8 +1,7 @@
 module Kumogata2::CLI
   class OptionParser
     DEFAULT_OPTIONS = {
-      result_log: File.join(Dir.pwd, 'result.json'),
-      command_result_log: File.join(Dir.pwd, 'command_result.json'),
+      result_log: File.join(Dir.pwd, 'result.yaml'),
       color: $stdout.tty?,
     }
 

@@ -1,5 +1,5 @@
 class Kumogata2::Plugin::JSON
-  Kumogata2::Plugin.register(:json, ['json', 'js', 'template'], self)
+  Kumogata2::Plugin.register(:json, ['json', 'js'], self)
 
   def initialize(options)
     @options = options
