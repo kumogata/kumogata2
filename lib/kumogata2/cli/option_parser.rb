@@ -261,7 +261,7 @@ module Kumogata2::CLI
       max = expected.length
 
       if arguments.length < min or max < arguments.length
-        raise "Usage: kumogata #{command} #{arguments_to_message(expected)} [options]"
+        raise "Usage: kumogata2 #{command} #{arguments_to_message(expected)} [options]"
       end
     end
 
