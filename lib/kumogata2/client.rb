@@ -150,7 +150,7 @@ class Kumogata2::Client
 
   def get_client
     return @client unless @client.nil?
-    @client = Aws::CloudFormation::Client.new
+    @client = Aws::CloudFormation::Client.new(@options.aws)
   end
 
   def get_resource
