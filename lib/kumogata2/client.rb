@@ -175,7 +175,7 @@ class Kumogata2::Client
 
     params = {
       stack_name: stack_name,
-      template_body: template.to_json,
+      template_body: convert_output_value(template),
       parameters: parameters_array,
     }
 
@@ -220,7 +220,7 @@ class Kumogata2::Client
 
     params = {
       stack_name: stack_name,
-      template_body: template.to_json,
+      template_body: convert_output_value(template),
       parameters: parameters_array,
     }
 
@@ -285,7 +285,7 @@ class Kumogata2::Client
   end
 
   def validate_template(template)
-    get_client.validate_template(template_body: template.to_json)
+    get_client.validate_template(template_body: convert_output_value(template))
     log(:info, 'Template validated successfully', color: :green)
   end
 
@@ -319,7 +319,7 @@ class Kumogata2::Client
     params = {
       stack_name: stack_name,
       change_set_name: change_set_name,
-      template_body: template.to_json,
+      template_body: convert_output_value(template),
       parameters: parameters_array,
     }
 
@@ -382,8 +382,12 @@ class Kumogata2::Client
     resp.to_h
   end
 
+  def get_output_format
+    @options.output_format || 'template'
+  end
+
   def convert0(template)
-    ext = @options.output_format || 'template'
+    ext = get_output_format
     plugin = find_or_create_plugin('xxx.' + ext)
 
     if plugin
@@ -605,19 +609,46 @@ Outputs:
 EOS
 
     if @options.result_log?
+      logname = get_output_filename(@options.result_log, stack_name)
       puts <<-EOS
 
-(Save to `#{@options.result_log}`)
+(Save to `#{logname}`)
       EOS
 
-      open(@options.result_log, 'wb') do |f|
-        f.puts JSON.pretty_generate({
+      open(logname, 'wb') do |f|
+        f.puts convert_output_value({
           'StackName' => stack_name,
           'StackResourceSummaries' => summaries,
           'Outputs' => outputs,
         })
       end
     end
+  end
+
+  def convert_output_value(value)
+    ext = get_output_format
+    Kumogata2::Plugin.plugin_by_name.each do |type, plugin|
+      next unless plugin[:ext].include? ext
+      case type
+      when 'json'
+        return JSON.pretty_generate(value)
+      when 'yaml'
+        return YAML.dump(value)
+      end
+    end
+    value
+  end
+
+  def get_output_filename(value, stack_name = '')
+    ext = get_output_format
+    Kumogata2::Plugin.plugin_by_name.each do |type, plugin|
+      if plugin[:ext].include? ext
+        plugin_ext = plugin[:ext].first
+        filename = stack_name.empty? ? File.basename(value, '.yaml') : stack_name
+        return "#{filename}.#{plugin_ext}"
+      end
+    end
+    value
   end
 
   def post_process(path_or_url, outputs)

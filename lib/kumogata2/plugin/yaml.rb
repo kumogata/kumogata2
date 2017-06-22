@@ -1,6 +1,6 @@
 require 'yaml'
 class Kumogata2::Plugin::YAML
-  Kumogata2::Plugin.register(:yaml, ['yaml', 'yml'], self)
+  Kumogata2::Plugin.register(:yaml, ['yaml', 'yml', 'template'], self)
 
   def initialize(options)
     @options = options
