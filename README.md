@@ -4,6 +4,8 @@ Kumogata2 is a tool for [AWS CloudFormation](https://aws.amazon.com/cloudformati
 
 This is a `format converter` + `useful tool`.
 
+[![Gem Version](https://badge.fury.io/rb/kumogata2.png?201406152020)](http://badge.fury.io/rb/kumogata2)
+
 ## Installation
 
 Add this line to your application's Gemfile:
