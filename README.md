@@ -67,6 +67,7 @@ Options:
         --[no-]use-previous-template
         --stack-policy-during-update-body STACK_POLICY_DURING_UPDATE_BODY
         --stack-policy-during-update-url STACK_POLICY_DURING_UPDATE_URL
+        --tags TAGS
         --result-log PATH
         --command-result-log PATH
         --[no-]detach
