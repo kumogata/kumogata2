@@ -233,7 +233,8 @@ class Kumogata2::Client
       :capabilities,
       :resource_types,
       :stack_policy_body,
-      :stack_policy_url)
+      :stack_policy_url,
+      :tags)
     )
 
     event_log = create_event_log(stack)
@@ -450,6 +451,10 @@ class Kumogata2::Client
   def set_api_params(params, *keys)
     {}.tap do |h|
       keys.each do |k|
+        @options[k].collect! do |v|
+          key, value = v.split('=')
+          { key: key, value: value }
+         end if k == :tags
         h[k] = @options[k] if @options[k]
       end
     end
