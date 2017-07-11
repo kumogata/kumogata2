@@ -134,6 +134,14 @@ module Kumogata2::CLI
         end
       end
 
+      opt.on('', '--tags TAGS', Array) {|v|
+        v.each do |vv|
+          key, value = vv.split('=')
+          options[:tags] = [] if options[:tags].nil?
+          options[:tags] << { key: key, value: value }
+        end
+      }
+
       opt.on(''  , '--result-log PATH')         {|v| options[:result_log]       = v }
       opt.on(''  , '--command-result-log PATH') {|v| options[:command]          = v }
       opt.on(''  , '--[no-]detach')             {|v| options[:detach]           = v }

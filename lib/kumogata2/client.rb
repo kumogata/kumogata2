@@ -187,7 +187,8 @@ class Kumogata2::Client
       :resource_types,
       :on_failure,
       :stack_policy_body,
-      :stack_policy_url)
+      :stack_policy_url,
+      :tags)
     )
 
     stack = get_resource.create_stack(params)
