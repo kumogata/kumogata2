@@ -120,6 +120,7 @@ module Kumogata2::CLI
         use_previous_template: :boolean,
         stack_policy_during_update_body: nil,
         stack_policy_during_update_url: nil,
+        tags: Array,
       }.each do |key, type|
         opt_str = key.to_s.gsub('_', '-')
         opt_val = key.to_s.upcase
@@ -133,14 +134,6 @@ module Kumogata2::CLI
           opt.on('', "--#{opt_str} #{opt_val}", type) {|v| options[key] = v }
         end
       end
-
-      opt.on('', '--tags TAGS', Array) {|v|
-        v.each do |vv|
-          key, value = vv.split('=')
-          options[:tags] = [] if options[:tags].nil?
-          options[:tags] << { key: key, value: value }
-        end
-      }
 
       opt.on(''  , '--result-log PATH')         {|v| options[:result_log]       = v }
       opt.on(''  , '--command-result-log PATH') {|v| options[:command]          = v }
@@ -191,8 +184,8 @@ module Kumogata2::CLI
         Kumogata2::Logger.instance.set_debug(options.debug?)
 
         Aws.config.update(
-          :http_wire_trace => true,
-          :logger => Kumogata2::Logger.instance
+          http_wire_trace: true,
+          logger: Kumogata2::Logger.instance
         )
       end
 
