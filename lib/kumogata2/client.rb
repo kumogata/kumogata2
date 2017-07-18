@@ -454,7 +454,7 @@ class Kumogata2::Client
         @options[k].collect! do |v|
           key, value = v.split('=')
           { key: key, value: value }
-         end if k == :tags
+         end if k == :tags and not @options[k].nil?
         h[k] = @options[k] if @options[k]
       end
     end
