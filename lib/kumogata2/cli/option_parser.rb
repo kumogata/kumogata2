@@ -25,6 +25,11 @@ module Kumogata2::CLI
         arguments: [:stack_name],
         output: false,
       },
+      deploy: {
+        description: 'Create a change set and executes it',
+        arguments: [:path_or_url, :stack_name],
+        output: false,
+      },
       validate: {
         description: 'Validate a specified template',
         arguments: [:path_or_url],
