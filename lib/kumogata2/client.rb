@@ -160,6 +160,12 @@ class Kumogata2::Client
 
   def get_client
     return @client unless @client.nil?
+
+    # https://github.com/aws/aws-sdk-ruby/blob/v2.3.11/aws-sdk-core/lib/aws-sdk-core/plugins/regional_endpoint.rb#L29
+    unless @options[:aws][:region]
+      raise "missing region; use '--region' option or export region name to ENV['AWS_REGION']"
+    end
+
     @client = Aws::CloudFormation::Client.new(@options.aws)
   end
 
