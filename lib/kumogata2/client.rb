@@ -51,6 +51,16 @@ class Kumogata2::Client
     end
   end
 
+  def deploy(path_or_url, stack_name = nil)
+    stack_name = normalize_stack_name(stack_name)
+    validate_stack_name(stack_name) if stack_name
+    template = open_template(path_or_url)
+    update_deletion_policy(template, delete_stack: !stack_name)
+
+    change_set = create_change_set(template, stack_name)
+    execute_change_set(change_set)
+  end
+
   def validate(path_or_url)
     template = open_template(path_or_url)
     validate_template(template)
@@ -283,7 +293,7 @@ class Kumogata2::Client
       raise_stack_error!(stack, 'Delete failed')
     end
 
-    log(:info, 'Success')
+    log(:info, 'Delete stack successfully')
   end
 
   def validate_template(template)
@@ -312,17 +322,35 @@ class Kumogata2::Client
     JSON.parse(template)
   end
 
-  def show_change_set(template, stack_name)
-    output = nil
+  def create_change_set(template, stack_name)
     change_set_name = [stack_name, SecureRandom.uuid].join('-')
 
-    log(:info, "Creating ChangeSet: #{change_set_name}", color: :cyan)
+    begin
+      stack = describe_stack(stack_name)
+      case stack[:stack_status]
+      when /_FAILED\z/
+        log(:error, "Stack #{stack_name} status is now failed - #{stack[:stack_status]}", color: :red)
+        return
+      when /^DELETE_/
+        log(:error, "Stack #{stack_name} statis is now delete - #{stack[:stack_status]}", color: :red)
+        return
+      when 'REVIEW_IN_PROGRESS'
+        change_set_type = 'CREATE'
+      else
+        change_set_type = 'UPDATE'
+      end
+    rescue
+      change_set_type = 'CREATE'
+    end
+
+    log(:info, "Creating ChangeSet: #{change_set_name} for #{stack_name}", color: :cyan)
 
     params = {
       stack_name: stack_name,
       change_set_name: change_set_name,
       template_body: convert_output_value(template),
       parameters: parameters_array,
+      change_set_type: change_set_type,
     }
 
     params.merge!(set_api_params(params,
@@ -337,26 +365,62 @@ class Kumogata2::Client
 
     completed, change_set = wait_change_set(change_set_arn, 'CREATE_COMPLETE')
 
-    if completed
-      output = changes_for(change_set)
-    else
+    unless completed
       log(:error, "Create ChangeSet failed: #{change_set.status_reason}", color: :red)
     end
 
-    log(:info, "Deleting ChangeSet: #{change_set_name}", color: :red)
+    change_set
+  end
 
-    get_client.delete_change_set(change_set_name: change_set_arn)
+  def execute_change_set(change_set)
+    if change_set.status != 'CREATE_COMPLETE'
+      log(:info, "ChangeSet status is #{change_set.status}", color: :red)
+      delete_change_set(change_set)
+      return
+    end
+
+    log(:info, "Executing ChangeSet: #{change_set.change_set_name} for #{change_set.stack_name}", color: :cyan)
+
+    get_client.execute_change_set(change_set_name: change_set.change_set_name,
+                                  stack_name: change_set.stack_name)
+
+    stack = get_resource.stack(change_set.stack_name)
+
+    event_log = create_event_log(stack)
+
+    completed = wait(stack, stack.stack_status, event_log)
+
+    unless completed
+      raise_stack_error!(stack, 'executing change set failed')
+    end
+  end
+
+  def delete_change_set(change_set)
+    log(:info, "Deleting ChangeSet: #{change_set.change_set_name}", color: :red)
+
+    get_client.delete_change_set(stack_name: change_set.stack_name,
+                                 change_set_name: change_set.change_set_id)
 
     begin
-      completed, _ = wait_change_set(change_set_arn, 'DELETE_COMPLETE')
+      completed, _ = wait_change_set(change_set.change_set_id, 'DELETE_COMPLETE')
     rescue Aws::CloudFormation::Errors::ChangeSetNotFound
       # Handle `ChangeSet does not exist`
       completed = true
     end
 
-    unless completed
-      log(:error, "Delete ChangeSet failed: #{change_set.status_reason}", color: :red)
-    end
+    completed
+  end
+
+  def show_change_set(template, stack_name)
+    output = nil
+
+    change_set = create_change_set(template, stack_name)
+    output = changes_for(change_set) unless change_set.nil?
+
+    delete_change_set(change_set)
+
+    stack = get_resource.stack(stack_name)
+    delete_stack(stack_name) if stack.stack_status == 'REVIEW_IN_PROGRESS'
 
     output
   end
