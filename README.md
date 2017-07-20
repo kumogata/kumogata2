@@ -32,6 +32,7 @@ Commands:
   create           PATH_OR_URL [STACK_NAME]   Create resources as specified in the template
   update           PATH_OR_URL STACK_NAME     Update a stack as specified in the template
   delete           STACK_NAME                 Delete a specified stack
+  deploy           PATH_OR_URL STACK_NAME     Create a change set and executes it
   validate         PATH_OR_URL                Validate a specified template
   list             [STACK_NAME]               List summary information for stacks
   export           STACK_NAME                 Export a template from a specified stack
