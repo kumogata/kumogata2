@@ -322,13 +322,21 @@ class Kumogata2::Client
     output = nil
     change_set_name = [stack_name, SecureRandom.uuid].join('-')
 
-    log(:info, "Creating ChangeSet: #{change_set_name}", color: :cyan)
+    begin
+      describe_stack(stack_name)
+      change_set_type = 'UPDATE'
+    rescue
+      change_set_type = 'CREATE'
+    end
+
+    log(:info, "Creating ChangeSet: #{change_set_name} for #{change_set_type} #{stack_name}", color: :cyan)
 
     params = {
       stack_name: stack_name,
       change_set_name: change_set_name,
       template_body: convert_output_value(template),
       parameters: parameters_array,
+      change_set_type: change_set_type,
     }
 
     params.merge!(set_api_params(params,
@@ -351,7 +359,7 @@ class Kumogata2::Client
 
     log(:info, "Deleting ChangeSet: #{change_set_name}", color: :red)
 
-    get_client.delete_change_set(change_set_name: change_set_arn)
+    get_client.delete_change_set(stack_name: stack_name, change_set_name: change_set_arn)
 
     begin
       completed, _ = wait_change_set(change_set_arn, 'DELETE_COMPLETE')
@@ -359,6 +367,8 @@ class Kumogata2::Client
       # Handle `ChangeSet does not exist`
       completed = true
     end
+
+    delete_stack(stack_name) if change_set_type == 'CREATE'
 
     unless completed
       log(:error, "Delete ChangeSet failed: #{change_set.status_reason}", color: :red)
