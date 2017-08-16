@@ -4,6 +4,7 @@ module Kumogata2::CLI
       result_log: File.join(Dir.pwd, 'result.yaml'),
       color: $stdout.tty?,
     }
+    DEFAULT_OPTION_RETRY_LIMIT = 100
 
     COMMANDS = {
       describe: {
@@ -84,7 +85,8 @@ module Kumogata2::CLI
       arguments = nil
       # https://github.com/aws/aws-sdk-ruby/blob/v2.3.11/aws-sdk-core/lib/aws-sdk-core/plugins/regional_endpoint.rb#L18
       region_keys = %w(AWS_REGION AMAZON_REGION AWS_DEFAULT_REGION)
-      options = {aws: {region: ENV.values_at(*region_keys).compact.first}}
+      options = { aws: { region: ENV.values_at(*region_keys).compact.first,
+                  retry_limit: DEFAULT_OPTION_RETRY_LIMIT } }
 
       opt = ::OptionParser.new
       opt.summary_width = 65535
@@ -93,6 +95,7 @@ module Kumogata2::CLI
       opt.on('-k', '--access-key ACCESS_KEY') {|v| options[:aws][:access_key_id]     = v }
       opt.on('-s', '--secret-key SECRET_KEY') {|v| options[:aws][:secret_access_key] = v }
       opt.on('-r', '--region REGION')         {|v| options[:aws][:region]            = v }
+      opt.on('',   '--retry-limit LIMIT')     {|v| options[:aws][:retry_limit]       = v }
 
       opt.on('', '--profile PROFILE') do |v|
         options[:aws][:credentials] ||= {}

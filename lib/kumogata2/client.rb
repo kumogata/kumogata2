@@ -191,7 +191,7 @@ class Kumogata2::Client
 
     params = {
       stack_name: stack_name,
-      template_body: convert_output_value(template),
+      template_body: convert_output_value(template, false),
       parameters: parameters_array,
     }
 
@@ -237,7 +237,7 @@ class Kumogata2::Client
 
     params = {
       stack_name: stack_name,
-      template_body: convert_output_value(template),
+      template_body: convert_output_value(template, false),
       parameters: parameters_array,
     }
 
@@ -303,7 +303,7 @@ class Kumogata2::Client
   end
 
   def validate_template(template)
-    get_client.validate_template(template_body: convert_output_value(template))
+    get_client.validate_template(template_body: convert_output_value(template, false))
     log(:info, 'Template validated successfully', color: :green)
   end
 
@@ -354,7 +354,7 @@ class Kumogata2::Client
     params = {
       stack_name: stack_name,
       change_set_name: change_set_name,
-      template_body: convert_output_value(template),
+      template_body: convert_output_value(template, false),
       parameters: parameters_array,
       change_set_type: change_set_type,
     }
@@ -701,15 +701,17 @@ EOS
     end
   end
 
-  def convert_output_value(value)
+  def convert_output_value(value, color = true)
     ext = get_output_format
     Kumogata2::Plugin.plugin_by_name.each do |type, plugin|
       next unless plugin[:ext].include? ext
+
+      plugin_instance = find_or_create_plugin('xxx.' + ext)
       case type
       when 'json'
-        return JSON.pretty_generate(value)
+        return plugin_instance.dump(value, color)
       when 'yaml'
-        return YAML.dump(value)
+        return plugin_instance.dump(value, color)
       end
     end
     value

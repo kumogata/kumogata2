@@ -1,4 +1,5 @@
 require 'yaml'
+
 class Kumogata2::Plugin::YAML
   Kumogata2::Plugin.register(:yaml, ['yaml', 'yml', 'template'], self)
 
@@ -10,7 +11,12 @@ class Kumogata2::Plugin::YAML
     YAML.load(str)
   end
 
-  def dump(hash)
-    YAML.dump(hash).colorize_as(:yaml)
+  def dump(hash, color = true)
+    Hashie.stringify_keys!(hash)
+    if color
+      YAML.dump(hash).colorize_as(:yaml)
+    else
+      YAML.dump(hash)
+    end
   end
 end

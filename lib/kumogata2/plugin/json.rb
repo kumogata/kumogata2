@@ -9,7 +9,11 @@ class Kumogata2::Plugin::JSON
     JSON.parse(str)
   end
 
-  def dump(hash)
-    JSON.pretty_generate(hash).colorize_as(:json)
+  def dump(hash, color = true)
+    if color
+      JSON.pretty_generate(hash).colorize_as(:json)
+    else
+      JSON.pretty_generate(hash)
+    end
   end
 end
