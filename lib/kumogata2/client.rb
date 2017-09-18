@@ -363,7 +363,8 @@ class Kumogata2::Client
       :use_previous_template,
       :notification_arns,
       :capabilities,
-      :resource_types)
+      :resource_types,
+      :tags)
     )
 
     resp = get_client.create_change_set(params)
