@@ -19,15 +19,15 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'aws-sdk', '>= 2.3.0'
-  spec.add_dependency 'coderay'
-  spec.add_dependency 'diffy'
-  spec.add_dependency 'hashie'
-  spec.add_dependency 'highline'
-  spec.add_dependency 'term-ansicolor'
+  spec.add_dependency 'aws-sdk', '~> 3.0'
+  spec.add_dependency 'coderay', '~> 1.1'
+  spec.add_dependency 'diffy', '~> 3.2'
+  spec.add_dependency 'hashie', '~> 3.5'
+  spec.add_dependency 'highline', '~> 2.0'
+  spec.add_dependency 'term-ansicolor', '~> 1.6'
 
-  spec.add_development_dependency 'bundler'
-  spec.add_development_dependency 'rake'
+  spec.add_development_dependency 'bundler', '~> 1.16'
+  spec.add_development_dependency 'rake', '~> 12.3'
   spec.add_development_dependency 'rspec', '~> 3.0'
-  spec.add_development_dependency 'kumogata2-plugin-ruby', '>= 0.1.3'
+  spec.add_development_dependency 'kumogata2-plugin-ruby', '~> 0.1'
 end
